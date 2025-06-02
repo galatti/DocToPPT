@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  doctoppt:
+    build: .
+    container_name: doctoppt-app
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=docker
+      - FLASK_DEBUG=true
+    env_file:
+      - .env
+    volumes:
+      - ./static/uploads:/app/static/uploads
+      - ./examples:/app/examples
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  uploads:
+    driver: local

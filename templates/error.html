@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Erro - DocToPPT{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="text-center">
+            <!-- Error Icon -->
+            <div class="mb-4">
+                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 5rem;"></i>
+            </div>
+            
+            <!-- Error Message -->
+            <h1 class="display-4 fw-bold text-dark mb-3">Oops!</h1>
+            <p class="lead text-muted mb-4">
+                {% if error %}
+                    {{ error }}
+                {% else %}
+                    Algo deu errado. Não conseguimos processar sua solicitação.
+                {% endif %}
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-house me-2"></i>
+                    Voltar ao Início
+                </a>
+                <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Página Anterior
+                </button>
+            </div>
+            
+            <!-- Help Section -->
+            <div class="mt-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-question-circle text-primary me-2"></i>
+                            Precisa de Ajuda?
+                        </h5>
+                        <p class="card-text text-muted">
+                            Se o problema persistir, verifique:
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Se o arquivo está no formato correto (PDF, Word, TXT, MD)
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Se o tamanho do arquivo não excede 16MB
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Se sua conexão com a internet está estável
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Se as configurações de IA estão corretas
+                            </li>
+                        </ul>
+                        <a href="{{ url_for('config_page') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-gear me-2"></i>
+                            Verificar Configurações
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

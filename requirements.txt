@@ -1,0 +1,27 @@
+# Core Flask application
+flask>=2.3.0
+python-dotenv>=1.0.0
+werkzeug>=2.3.0
+
+# PDF processing
+PyPDF2>=3.0.0
+pdfplumber>=0.9.0
+
+# AI integration (DeepSeek uses OpenAI SDK)
+openai>=1.0.0
+requests>=2.31.0
+
+# Document processing
+python-docx>=0.8.11
+markdown>=3.4.0
+
+# PowerPoint generation
+python-pptx>=0.6.21
+
+# Text processing and NLP
+nltk>=3.8.0
+spacy>=3.4.0
+
+# Utilities
+python-multipart>=0.0.6
+gunicorn>=21.0.0

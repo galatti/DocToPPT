@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}DocToPPT - Transforme Documentos em Apresentações{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row align-items-center mb-5">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold text-primary">
+            Transforme Documentos em Apresentações
+        </h1>
+        <p class="lead text-muted">
+            Use o poder da Inteligência Artificial para converter automaticamente seus documentos PDF, Word, TXT e Markdown em apresentações PowerPoint profissionais.
+        </p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <a href="{{ url_for('upload') }}" class="btn btn-primary btn-lg me-md-2">
+                <i class="bi bi-cloud-upload me-2"></i>
+                Começar Agora
+            </a>
+            <a href="{{ url_for('config_page') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-gear me-2"></i>
+                Configurações
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="text-center">
+            <i class="bi bi-file-earmark-ppt-fill text-primary" style="font-size: 12rem;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="text-center mb-4">Como Funciona</h2>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-file-upload text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="card-title">1. Faça Upload</h5>
+                <p class="card-text">
+                    Envie seu documento (PDF, Word, TXT ou Markdown) através da interface simples e intuitiva.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-robot text-success" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="card-title">2. IA Processa</h5>
+                <p class="card-text">
+                    Nossa IA DeepSeek analisa o conteúdo, identifica tópicos principais e estrutura a apresentação.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-download text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="card-title">3. Baixe o PPTX</h5>
+                <p class="card-text">
+                    Receba sua apresentação PowerPoint profissional pronta para usar em reuniões e palestras.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Supported Formats -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h3 class="text-center mb-4">Formatos Suportados</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="card text-center border-danger">
+                            <div class="card-body">
+                                <i class="bi bi-filetype-pdf text-danger mb-2" style="font-size: 2rem;"></i>
+                                <h6 class="card-title">PDF</h6>
+                                <small class="text-muted">Documentos PDF</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card text-center border-primary">
+                            <div class="card-body">
+                                <i class="bi bi-file-earmark-word text-primary mb-2" style="font-size: 2rem;"></i>
+                                <h6 class="card-title">Word</h6>
+                                <small class="text-muted">Arquivos .docx</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card text-center border-success">
+                            <div class="card-body">
+                                <i class="bi bi-file-earmark-text text-success mb-2" style="font-size: 2rem;"></i>
+                                <h6 class="card-title">TXT</h6>
+                                <small class="text-muted">Texto simples</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card text-center border-info">
+                            <div class="card-body">
+                                <i class="bi bi-markdown text-info mb-2" style="font-size: 2rem;"></i>
+                                <h6 class="card-title">Markdown</h6>
+                                <small class="text-muted">Arquivos .md</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features List -->
+<div class="row">
+    <div class="col-md-6">
+        <h4 class="mb-3">
+            <i class="bi bi-star-fill text-warning me-2"></i>
+            Principais Recursos
+        </h4>
+        <ul class="list-unstyled">
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Processamento automático com IA DeepSeek
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Preservação de formatação e design
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Templates PowerPoint personalizáveis
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Interface web intuitiva
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Configurações flexíveis de IA
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h4 class="mb-3">
+            <i class="bi bi-shield-check text-primary me-2"></i>
+            Segurança e Performance
+        </h4>
+        <ul class="list-unstyled">
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Processamento local e seguro
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Limite de 16MB por arquivo
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Containerizado com Docker
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Limpeza automática de arquivos temporários
+            </li>
+            <li class="mb-2">
+                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                Logs detalhados de processamento
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card bg-primary text-white text-center">
+            <div class="card-body py-5">
+                <h3 class="card-title">Pronto para começar?</h3>
+                <p class="card-text lead">
+                    Transforme seus documentos em apresentações profissionais em minutos
+                </p>
+                <a href="{{ url_for('upload') }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-cloud-upload me-2"></i>
+                    Fazer Upload do Documento
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
