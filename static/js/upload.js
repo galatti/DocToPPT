@@ -1,9 +1,10 @@
 /**
  * DocToPPT - Upload Page JavaScript
- * Handles drag & drop, file validation, and upload functionality
+ * Fixed version with proper file preview handling
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Upload page loaded');
     initializeUpload();
 });
 
@@ -11,22 +12,38 @@ function initializeUpload() {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('document');
     const uploadForm = document.getElementById('uploadForm');
-    const filePreview = document.getElementById('filePreview');
-    const submitBtn = document.getElementById('submitBtn');
     
     if (!dropZone || !fileInput || !uploadForm) {
         console.error('Upload elements not found');
         return;
     }
     
-    // Drag and drop handlers
+    // Disable submit button initially
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+    }
+    
+    // Setup drag and drop
     setupDragAndDrop(dropZone, fileInput);
     
     // File input change handler
     fileInput.addEventListener('change', handleFileSelect);
     
-    // Form submit handler
-    uploadForm.addEventListener('submit', handleFormSubmit);
+    // Form submit handler with improved feedback
+    uploadForm.addEventListener('submit', function(event) {
+        const formData = new FormData(uploadForm);
+        if (!validateForm(formData)) {
+            event.preventDefault();
+            return;
+        }
+        
+        // Show loading feedback before submission
+        showUploadProgress();
+        console.log('Form submitting with file:', formData.get('document').name);
+        
+        // Let form submit normally after showing feedback
+    });
     
     // Remove file handler
     const removeBtn = document.getElementById('removeFile');
@@ -34,12 +51,9 @@ function initializeUpload() {
         removeBtn.addEventListener('click', removeSelectedFile);
     }
     
-    console.log('Upload page initialized');
+    console.log('Upload functionality initialized');
 }
 
-/**
- * Setup drag and drop functionality
- */
 function setupDragAndDrop(dropZone, fileInput) {
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -59,8 +73,23 @@ function setupDragAndDrop(dropZone, fileInput) {
     // Handle dropped files
     dropZone.addEventListener('drop', handleDrop, false);
     
-    // Handle click to open file dialog
-    dropZone.addEventListener('click', () => {
+    // Handle click to open file dialog - FIXED VERSION
+    dropZone.addEventListener('click', function(event) {
+        // Prevent click if already uploading
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn && submitBtn.disabled && submitBtn.innerHTML.includes('spinner')) {
+            return;
+        }
+        
+        // Don't trigger if clicking on the label or button (they handle it natively)
+        // This prevents the double file dialog issue
+        if (event.target.tagName === 'LABEL' || 
+            event.target.closest('label') || 
+            event.target.tagName === 'BUTTON') {
+            return;
+        }
+        
+        console.log('Drop zone clicked, opening file dialog');
         fileInput.click();
     });
     
@@ -82,90 +111,97 @@ function setupDragAndDrop(dropZone, fileInput) {
         const files = dt.files;
         
         if (files.length > 0) {
-            handleFiles(files);
+            console.log('File dropped:', files[0].name);
+            
+            // Validate file before setting
+            const file = files[0];
+            const validation = validateFile(file);
+            
+            if (!validation.valid) {
+                if (window.DocToPPT && DocToPPT.showToast) {
+                    DocToPPT.showToast(validation.error, 'error');
+                } else {
+                    alert(validation.error);
+                }
+                return;
+            }
+            
+            fileInput.files = files;
+            handleFileSelect({ target: { files: files } });
         }
     }
 }
 
-/**
- * Handle file selection (both drag & drop and click)
- */
-function handleFiles(files) {
-    const file = files[0]; // Only handle the first file
-    
-    if (!file) return;
-    
-    // Validate file
-    const validation = DocToPPT.validateFile(file);
-    if (!validation.valid) {
-        DocToPPT.showToast(validation.error, 'error');
-        return;
-    }
-    
-    // Update file input
-    const fileInput = document.getElementById('document');
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    fileInput.files = dataTransfer.files;
-    
-    // Show file preview
-    showFilePreview(file);
-    
-    // Animate preview
-    const preview = document.getElementById('filePreview');
-    DocToPPT.animateIn(preview, 'slide-up');
-    
-    DocToPPT.showToast(`Arquivo "${file.name}" selecionado com sucesso!`, 'success');
-}
-
-/**
- * Handle file input change
- */
 function handleFileSelect(event) {
     const files = event.target.files;
     if (files.length > 0) {
-        showFilePreview(files[0]);
+        const file = files[0];
+        console.log('File selected:', file.name);
+        
+        // Validate file
+        const validation = validateFile(file);
+        if (!validation.valid) {
+            if (window.DocToPPT && DocToPPT.showToast) {
+                DocToPPT.showToast(validation.error, 'error');
+            } else {
+                alert(validation.error);
+            }
+            
+            // Clear the input
+            event.target.value = '';
+            return;
+        }
+        
+        showFilePreview(file);
     }
 }
 
-/**
- * Show file preview
- */
 function showFilePreview(file) {
     const preview = document.getElementById('filePreview');
-    const fileName = document.getElementById('fileName');
-    const fileSize = document.getElementById('fileSize');
     const dropZone = document.getElementById('dropZone');
+    const submitBtn = document.getElementById('submitBtn');
     
-    if (!preview || !fileName || !fileSize) return;
+    if (!preview) {
+        console.error('Preview element not found');
+        return;
+    }
+    
+    // Show preview first
+    preview.classList.remove('d-none');
+    
+    // Now find the child elements (they should be accessible after parent is visible)
+    const fileName = preview.querySelector('#fileName');
+    const fileSize = preview.querySelector('#fileSize');
+    
+    if (!fileName || !fileSize) {
+        console.error('File name or size elements not found in preview');
+        return;
+    }
     
     // Update preview content
     fileName.textContent = file.name;
-    fileSize.textContent = DocToPPT.formatFileSize(file.size);
+    fileSize.textContent = formatFileSize(file.size);
     
-    // Update icon based on file type
-    const extension = DocToPPT.getFileExtension(file.name);
-    const iconClass = DocToPPT.getFileIconClass(extension);
-    const icon = preview.querySelector('.bi-file-earmark');
-    if (icon) {
-        icon.className = `bi ${iconClass} me-3`;
-        icon.style.fontSize = '2rem';
+    // Show file type icon
+    const extension = getFileExtension(file.name);
+    const fileIcon = preview.querySelector('i');
+    if (fileIcon) {
+        fileIcon.className = getFileIconClass(extension);
     }
     
-    // Show preview and hide drop zone
-    preview.classList.remove('d-none');
-    dropZone.style.display = 'none';
+    // Hide drop zone
+    if (dropZone) {
+        dropZone.style.display = 'none';
+    }
     
     // Enable submit button
-    const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.disabled = false;
     }
+    
+    console.log('File preview shown for:', file.name);
 }
 
-/**
- * Remove selected file
- */
 function removeSelectedFile() {
     const fileInput = document.getElementById('document');
     const preview = document.getElementById('filePreview');
@@ -180,190 +216,151 @@ function removeSelectedFile() {
     // Hide preview and show drop zone
     if (preview) {
         preview.classList.add('d-none');
+        
+        // Remove any upload status elements
+        const uploadStatus = preview.querySelector('#uploadStatus');
+        if (uploadStatus) {
+            uploadStatus.remove();
+        }
     }
     
     if (dropZone) {
         dropZone.style.display = 'block';
     }
     
-    // Disable submit button
+    // Reset submit button
     if (submitBtn) {
         submitBtn.disabled = true;
+        const originalText = submitBtn.getAttribute('data-original-text');
+        if (originalText) {
+            submitBtn.innerHTML = originalText;
+        }
     }
     
-    DocToPPT.showToast('Arquivo removido', 'info');
+    console.log('File removed');
 }
 
-/**
- * Handle form submission
- */
-function handleFormSubmit(event) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    const submitBtn = document.getElementById('submitBtn');
-    
-    // Validate form
-    if (!validateForm(formData)) {
-        return;
-    }
-    
-    // Show loading state
-    const originalText = submitBtn.innerHTML;
-    DocToPPT.showLoading(submitBtn, 'Processando...');
-    
-    // Submit form
-    submitForm(form, formData)
-        .then(response => {
-            if (response.success) {
-                // Redirect to processing page
-                window.location.href = response.redirect || `/processing/${response.filename}`;
-            } else {
-                throw new Error(response.error || 'Erro no processamento');
-            }
-        })
-        .catch(error => {
-            console.error('Upload error:', error);
-            DocToPPT.showToast(error.message || 'Erro ao enviar arquivo', 'error');
-            DocToPPT.hideLoading(submitBtn, originalText);
-        });
-}
-
-/**
- * Validate form before submission
- */
 function validateForm(formData) {
     const document = formData.get('document');
     
     if (!document || !document.name) {
-        DocToPPT.showToast('Selecione um documento para continuar', 'error');
+        if (window.DocToPPT && DocToPPT.showToast) {
+            DocToPPT.showToast('Selecione um documento para continuar', 'error');
+        } else {
+            alert('Selecione um documento para continuar');
+        }
         return false;
     }
     
-    // Validate file again
-    const validation = DocToPPT.validateFile(document);
+    // Use improved validation function
+    const validation = validateFile(document);
     if (!validation.valid) {
-        DocToPPT.showToast(validation.error, 'error');
+        if (window.DocToPPT && DocToPPT.showToast) {
+            DocToPPT.showToast(validation.error, 'error');
+        } else {
+            alert(validation.error);
+        }
         return false;
-    }
-    
-    // Validate template if provided
-    const template = formData.get('template');
-    if (template && template.name) {
-        const templateExtension = DocToPPT.getFileExtension(template.name);
-        if (templateExtension !== 'pptx') {
-            DocToPPT.showToast('Template deve ser um arquivo .pptx', 'error');
-            return false;
-        }
-        
-        if (template.size > 32 * 1024 * 1024) { // 32MB for templates
-            DocToPPT.showToast('Template muito grande. Máximo: 32MB', 'error');
-            return false;
-        }
     }
     
     return true;
 }
 
-/**
- * Submit form via AJAX
- */
-async function submitForm(form, formData) {
-    try {
-        const response = await fetch(form.action, {
-            method: 'POST',
-            body: formData
-        });
-        
-        // Handle different response types
-        const contentType = response.headers.get('content-type');
-        
-        if (contentType && contentType.includes('application/json')) {
-            return await response.json();
-        }
-        
-        // If it's a redirect (HTML response), follow it
-        if (response.redirected) {
-            window.location.href = response.url;
-            return { success: true };
-        }
-        
-        // For other HTML responses, check if it's an error page
-        const text = await response.text();
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        // If we get here, it might be the processing page HTML
-        // Let's redirect manually
-        const filename = formData.get('document').name;
+function validateFile(file) {
+    const allowedTypes = ['pdf', 'docx', 'txt', 'md'];
+    const extension = getFileExtension(file.name);
+    
+    console.log(`Validando arquivo: ${file.name}, extensão: ${extension}, tipo: ${file.type}`);
+    
+    // Check file type
+    if (!allowedTypes.includes(extension)) {
+        console.error(`Tipo de arquivo não suportado: .${extension}`);
         return {
-            success: true,
-            redirect: `/processing/${encodeURIComponent(filename)}`
+            valid: false,
+            error: `Tipo de arquivo não suportado: .${extension}. Use: PDF, DOCX, TXT ou MD`
         };
-        
-    } catch (error) {
-        console.error('Form submission error:', error);
-        throw error;
     }
+    
+    // Check file size (16MB)
+    const maxSize = 16 * 1024 * 1024;
+    if (file.size > maxSize) {
+        return {
+            valid: false,
+            error: `Arquivo muito grande (${formatFileSize(file.size)}). Máximo: ${formatFileSize(maxSize)}`
+        };
+    }
+    
+    // Check if file is empty
+    if (file.size === 0) {
+        return {
+            valid: false,
+            error: 'Arquivo está vazio'
+        };
+    }
+    
+    return { valid: true };
 }
 
-/**
- * Update upload progress (for future enhancement)
- */
-function updateProgress(percent) {
-    const progressContainer = document.querySelector('.progress');
+function showUploadProgress() {
+    const submitBtn = document.getElementById('submitBtn');
+    const filePreview = document.getElementById('filePreview');
     
-    if (!progressContainer) {
-        // Create progress bar if it doesn't exist
-        const form = document.getElementById('uploadForm');
-        const progressHtml = `
-            <div class="progress mb-3">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                     role="progressbar" 
-                     style="width: ${percent}%" 
-                     aria-valuenow="${percent}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                    ${percent}%
-                </div>
+    if (submitBtn) {
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando arquivo...';
+        submitBtn.disabled = true;
+        
+        // Store original text for potential recovery
+        submitBtn.setAttribute('data-original-text', originalText);
+    }
+    
+    // Show upload feedback in file preview
+    if (filePreview && !filePreview.classList.contains('d-none')) {
+        // Remove existing status if any
+        const existingStatus = filePreview.querySelector('#uploadStatus');
+        if (existingStatus) {
+            existingStatus.remove();
+        }
+        
+        const uploadStatus = document.createElement('div');
+        uploadStatus.id = 'uploadStatus';
+        uploadStatus.className = 'alert alert-info mt-2 mb-0';
+        uploadStatus.innerHTML = `
+            <div class="d-flex align-items-center">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                <span>Enviando arquivo para processamento...</span>
             </div>
         `;
-        form.insertAdjacentHTML('beforeend', progressHtml);
-    } else {
-        const progressBar = progressContainer.querySelector('.progress-bar');
-        if (progressBar) {
-            progressBar.style.width = `${percent}%`;
-            progressBar.setAttribute('aria-valuenow', percent);
-            progressBar.textContent = `${percent}%`;
-        }
+        filePreview.appendChild(uploadStatus);
     }
+    
+    // Show toast notification if available
+    if (window.DocToPPT && DocToPPT.showToast) {
+        DocToPPT.showToast('Enviando arquivo...', 'info');
+    }
+    
+    console.log('Upload progress feedback shown');
 }
 
-/**
- * Handle paste events (for future enhancement)
- */
-document.addEventListener('paste', function(event) {
-    const items = event.clipboardData.items;
-    
-    for (let item of items) {
-        if (item.kind === 'file') {
-            const file = item.getAsFile();
-            if (file) {
-                event.preventDefault();
-                handleFiles([file]);
-                DocToPPT.showToast('Arquivo colado da área de transferência', 'info');
-                break;
-            }
-        }
-    }
-});
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
-// Export for testing
-window.UploadPage = {
-    handleFiles,
-    removeSelectedFile,
-    validateForm,
-    updateProgress
-};
+function getFileExtension(filename) {
+    return filename.split('.').pop().toLowerCase();
+}
+
+function getFileIconClass(extension) {
+    const icons = {
+        'pdf': 'bi-filetype-pdf file-pdf',
+        'docx': 'bi-file-earmark-word file-docx',
+        'txt': 'bi-file-earmark-text file-txt',
+        'md': 'bi-markdown file-md'
+    };
+    
+    return icons[extension] || 'bi-file-earmark';
+}

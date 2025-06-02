@@ -6,6 +6,8 @@ werkzeug>=2.3.0
 # PDF processing
 PyPDF2>=3.0.0
 pdfplumber>=0.9.0
+PyMuPDF>=1.22.0  # Para extração de imagens
+Pillow>=10.0.0   # Para manipulação de imagens
 
 # AI integration (DeepSeek uses OpenAI SDK)
 openai>=1.0.0

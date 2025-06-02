@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block title %}Resultado - DocToPPT{% endblock %}
+
+{% block head %}
+<style>
+    .result-card {
+        transition: all 0.3s ease;
+    }
+    
+    .result-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    }
+    
+    .download-button {
+        background: linear-gradient(135deg, #198754, #146c43);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .download-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0.5rem 1rem rgba(25, 135, 84, 0.3);
+    }
+    
+    .success-animation {
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        60% { transform: translateY(-5px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Success Header -->
+        <div class="text-center mb-5">
+            <div class="success-animation mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+            </div>
+            <h1 class="display-4 fw-bold text-success">
+                Apresentação Criada!
+            </h1>
+            <p class="lead text-muted">
+                Sua apresentação PowerPoint foi gerada com sucesso usando IA
+            </p>
+        </div>
+
+        <!-- Result Card -->
+        <div class="card shadow-lg border-0 result-card">
+            <div class="card-body p-5">
+                <!-- File Information -->
+                <div class="row align-items-center mb-4">
+                    <div class="col-md-2 text-center">
+                        <i class="bi bi-file-earmark-ppt-fill text-primary" style="font-size: 4rem;"></i>
+                    </div>                    <div class="col-md-10">
+                        <h3 class="mb-2">{{ filename or 'apresentacao' }}.pptx</h3>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    Criado em: <span id="creationDate"></span>
+                                </small>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-file-earmark me-1"></i>
+                                    Tamanho: {{ (file_size / 1024) | round(1) if file_size else "~2.5" }} KB
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Presentation Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <div class="h2 text-primary mb-1">12</div>
+                            <small class="text-muted">Slides</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <div class="h2 text-info mb-1">5</div>
+                            <small class="text-muted">Seções</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <div class="h2 text-warning mb-1">3</div>
+                            <small class="text-muted">Gráficos</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <div class="h2 text-success mb-1">2min</div>
+                            <small class="text-muted">Processamento</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Section -->
+                <div class="text-center mb-4">
+                    <button class="btn btn-success btn-lg download-button px-5 py-3" onclick="downloadPresentation()">
+                        <i class="bi bi-download me-3" style="font-size: 1.2rem;"></i>
+                        <span style="font-size: 1.1rem;">Baixar Apresentação</span>
+                    </button>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            Arquivo no formato PowerPoint (.pptx) - Compatível com todas as versões
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Additional Actions -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-primary" onclick="previewPresentation()">
+                                <i class="bi bi-eye me-2"></i>
+                                Visualizar Online
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-grid">
+                            <a href="{{ url_for('upload') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Nova Apresentação
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presentation Preview -->
+        <div class="card mt-4 border-0 shadow-sm" id="previewCard" style="display: none;">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-eye me-2"></i>
+                    Prévia da Apresentação
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border">
+                            <div class="card-body text-center p-3">
+                                <div class="h6 mb-2">Slide 1</div>
+                                <div class="bg-primary text-white p-3 rounded">
+                                    <h6 class="mb-1 text-white">Título Principal</h6>
+                                    <small>Subtítulo da apresentação</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border">
+                            <div class="card-body text-center p-3">
+                                <div class="h6 mb-2">Slide 2</div>
+                                <div class="bg-light p-3 rounded">
+                                    <h6 class="mb-1">Introdução</h6>
+                                    <small class="text-muted">• Ponto 1<br>• Ponto 2</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border">
+                            <div class="card-body text-center p-3">
+                                <div class="h6 mb-2">Slide 3</div>
+                                <div class="bg-light p-3 rounded">
+                                    <h6 class="mb-1">Conteúdo</h6>
+                                    <div class="bg-info" style="height: 30px; width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <small class="text-muted">E mais 9 slides...</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips and Next Steps -->
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-lightbulb text-warning me-2"></i>
+                            Próximos Passos
+                        </h5>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="bi bi-arrow-right text-primary me-2"></i>
+                                Abra o arquivo no PowerPoint
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-arrow-right text-primary me-2"></i>
+                                Personalize cores e fontes conforme necessário
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-arrow-right text-primary me-2"></i>
+                                Adicione suas próprias imagens
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-arrow-right text-primary me-2"></i>
+                                Revise e ajuste o conteúdo
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-stars text-success me-2"></i>
+                            Recursos Incluídos
+                        </h5>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Estrutura lógica e organizada
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Design profissional e moderno
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Sugestões de gráficos e imagens
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success me-2"></i>
+                                Slide de conclusão e próximos passos
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-chat-square-text text-primary me-2"></i>
+                    Como foi sua experiência?
+                </h5>
+                <p class="card-text">
+                    Ajude-nos a melhorar! Avalie a qualidade da apresentação gerada:
+                </p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success btn-sm" onclick="submitFeedback('excellent')">
+                        <i class="bi bi-hand-thumbs-up me-1"></i>
+                        Excelente
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="submitFeedback('good')">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Boa
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="submitFeedback('average')">
+                        <i class="bi bi-dash-circle me-1"></i>
+                        Média
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="submitFeedback('poor')">
+                        <i class="bi bi-hand-thumbs-down me-1"></i>
+                        Ruim
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set creation date
+    document.getElementById('creationDate').textContent = new Date().toLocaleDateString('pt-BR');
+    
+    // Add some entrance animations
+    setTimeout(() => {
+        document.querySelector('.result-card').classList.add('fade-in');
+    }, 300);
+});
+
+function downloadPresentation() {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    
+    // Show loading state
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Preparando download...';
+    button.disabled = true;
+      // Iniciar o download real
+    window.location.href = `/download/{{ filename }}`;
+    
+    DocToPPT.showToast('Download iniciado!', 'success');
+    
+    // Reset button after a short delay
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 2000);
+}
+
+function previewPresentation() {
+    const previewCard = document.getElementById('previewCard');
+    const button = event.target;
+    
+    if (previewCard.style.display === 'none') {
+        previewCard.style.display = 'block';
+        previewCard.scrollIntoView({ behavior: 'smooth' });
+        button.innerHTML = '<i class="bi bi-eye-slash me-2"></i>Ocultar Prévia';
+    } else {
+        previewCard.style.display = 'none';
+        button.innerHTML = '<i class="bi bi-eye me-2"></i>Visualizar Online';
+    }
+}
+
+function submitFeedback(rating) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando...';
+    button.disabled = true;
+    
+    // Simulate feedback submission
+    setTimeout(() => {
+        DocToPPT.showToast('Obrigado pelo seu feedback!', 'success');
+        
+        // Disable all feedback buttons
+        const feedbackButtons = document.querySelectorAll('[onclick^="submitFeedback"]');
+        feedbackButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.remove('btn-outline-success', 'btn-outline-primary', 'btn-outline-warning', 'btn-outline-danger');
+            btn.classList.add('btn-secondary');
+        });
+        
+        // Highlight selected rating
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-success');
+        button.innerHTML = originalText + ' ✓';
+    }, 1000);
+}
+
+// Auto-cleanup notification
+setTimeout(() => {
+    DocToPPT.showToast('Lembrete: O arquivo será removido automaticamente em 24 horas por questões de segurança.', 'info');
+}, 5000);
+</script>
+{% endblock %}

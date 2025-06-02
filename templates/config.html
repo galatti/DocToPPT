@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações - DocToPPT{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-gear me-3"></i>
+                Configurações
+            </h1>
+            <p class="lead text-muted">
+                Configure as opções da aplicação e da IA
+            </p>
+        </div>
+
+        <!-- Configuration Form -->
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <form method="POST" id="configForm">
+                    <!-- AI Configuration -->
+                    <div class="mb-5">
+                        <h4 class="mb-3">
+                            <i class="bi bi-robot text-primary me-2"></i>
+                            Configurações de IA
+                        </h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="deepseekKey" class="form-label">Chave API DeepSeek</label>
+                                <div class="input-group">
+                                    <input type="password" 
+                                           class="form-control" 
+                                           id="deepseekKey" 
+                                           name="deepseek_key"
+                                           placeholder="sk-xxxxxxxxxxxxxxxx"
+                                           value="{% if config.deepseek_configured %}••••••••••••••••{% endif %}">
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleKey">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    {% if config.deepseek_configured %}
+                                        <i class="bi bi-check-circle text-success me-1"></i>
+                                        Chave configurada e funcionando
+                                    {% else %}
+                                        <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                                        Configure sua chave API para usar a IA
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="aiTemperature" class="form-label">Criatividade da IA</label>
+                                <input type="range" 
+                                       class="form-range" 
+                                       id="aiTemperature" 
+                                       name="ai_temperature"
+                                       min="0" 
+                                       max="1" 
+                                       step="0.1" 
+                                       value="{{ config.ai_temperature or 0.7 }}">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Conservador</small>
+                                    <small class="text-muted">Criativo</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Presentation Settings -->
+                    <div class="mb-5">
+                        <h4 class="mb-3">
+                            <i class="bi bi-file-earmark-ppt text-primary me-2"></i>
+                            Configurações de Apresentação
+                        </h4>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="maxSlides" class="form-label">Máximo de Slides</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="maxSlides" 
+                                       name="max_slides"
+                                       min="5" 
+                                       max="50" 
+                                       value="{{ config.max_slides or 20 }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="defaultLanguage" class="form-label">Idioma Padrão</label>
+                                <select class="form-select" id="defaultLanguage" name="default_language">
+                                    <option value="pt-BR" {% if config.language == 'pt-BR' %}selected{% endif %}>Português (Brasil)</option>
+                                    <option value="en-US" {% if config.language == 'en-US' %}selected{% endif %}>English (US)</option>
+                                    <option value="es-ES" {% if config.language == 'es-ES' %}selected{% endif %}>Español</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="defaultStyle" class="form-label">Estilo Padrão</label>
+                                <select class="form-select" id="defaultStyle" name="default_style">
+                                    <option value="professional">Profissional</option>
+                                    <option value="academic">Acadêmico</option>
+                                    <option value="casual">Casual</option>
+                                    <option value="creative">Criativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Settings -->
+                    <div class="mb-5">
+                        <h4 class="mb-3">
+                            <i class="bi bi-gear-fill text-primary me-2"></i>
+                            Configurações do Sistema
+                        </h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="autoCleanup" name="auto_cleanup" checked>
+                                    <label class="form-check-label" for="autoCleanup">
+                                        Limpeza automática de arquivos temporários
+                                    </label>
+                                </div>
+                                <div class="form-text">Remove arquivos após processamento</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="detailedLogs" name="detailed_logs">
+                                    <label class="form-check-label" for="detailedLogs">
+                                        Logs detalhados
+                                    </label>
+                                </div>
+                                <div class="form-text">Ativa logging detalhado para debug</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>
+                            Salvar Configurações
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="testConnection()">
+                            <i class="bi bi-wifi me-2"></i>
+                            Testar Conexão IA
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Voltar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Status Information -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-info-circle text-info me-2"></i>
+                            Status do Sistema
+                        </h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-1">
+                                <span class="badge bg-success me-2">✓</span>
+                                Aplicação funcionando
+                            </li>
+                            <li class="mb-1">
+                                {% if config.deepseek_configured %}
+                                    <span class="badge bg-success me-2">✓</span>
+                                    IA configurada
+                                {% else %}
+                                    <span class="badge bg-warning me-2">!</span>
+                                    IA não configurada
+                                {% endif %}
+                            </li>
+                            <li>
+                                <span class="badge bg-success me-2">✓</span>
+                                Upload funcionando
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-question-circle text-primary me-2"></i>
+                            Como obter chave da API?
+                        </h6>
+                        <p class="card-text small mb-2">
+                            1. Acesse <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a><br>
+                            2. Crie uma conta ou faça login<br>
+                            3. Vá em "API Keys" no painel<br>
+                            4. Gere uma nova chave API<br>
+                            5. Cole a chave no campo acima
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password visibility
+    document.getElementById('toggleKey').addEventListener('click', function() {
+        const keyInput = document.getElementById('deepseekKey');
+        const icon = this.querySelector('i');
+        
+        if (keyInput.type === 'password') {
+            keyInput.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            keyInput.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    });
+    
+    // Update temperature display
+    const tempSlider = document.getElementById('aiTemperature');
+    tempSlider.addEventListener('input', function() {
+        const value = parseFloat(this.value);
+        let label = 'Médio';
+        if (value <= 0.3) label = 'Conservador';
+        else if (value >= 0.8) label = 'Muito Criativo';
+        else if (value >= 0.6) label = 'Criativo';
+        
+        // Update display (could add a small text element to show current value)
+    });
+});
+
+async function testConnection() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testando...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/test-ai-connection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            DocToPPT.showToast('Conexão com IA funcionando!', 'success');
+        } else {
+            DocToPPT.showToast('Erro na conexão: ' + result.error, 'error');
+        }
+    } catch (error) {
+        DocToPPT.showToast('Erro ao testar conexão', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

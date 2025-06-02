@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Processando Documento - DocToPPT{% endblock %}
+
+{% block head %}
+<style>
+    .processing-animation {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .progress-custom {
+        height: 8px;
+        border-radius: 10px;
+    }
+    
+    .status-card {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+            <div class="processing-animation mb-4">
+                <i class="bi bi-magic text-primary" style="font-size: 4rem;"></i>
+            </div>
+            <h1 class="display-5 fw-bold text-primary">
+                Processando seu documento
+            </h1>
+            <p class="lead text-muted">
+                A IA está analisando e criando sua apresentação...
+            </p>
+        </div>
+
+        <!-- Status Card -->
+        <div class="card shadow-lg border-0 status-card">
+            <div class="card-body p-5">
+                <!-- File Info -->
+                <div class="d-flex align-items-center mb-4">
+                    <i class="bi bi-file-earmark-text text-primary me-3" style="font-size: 2rem;"></i>
+                    <div>
+                        <h5 class="mb-1 text-break">{% if filename %}📄 {{ filename }}{% else %}📄 Documento não identificado{% endif %}</h5>
+                        <small class="text-success">✅ Arquivo enviado e recebido com sucesso</small>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fw-medium" id="statusText">Analisando conteúdo...</span>
+                        <span class="text-muted" id="progressPercent">25%</span>
+                    </div>
+                    <div class="progress progress-custom">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: 25%" 
+                             id="progressBar">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Steps -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3" id="step1">
+                            <div class="spinner-border spinner-border-sm text-primary me-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span>Extraindo texto do documento</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3" id="step2">
+                            <i class="bi bi-circle text-muted me-3"></i>
+                            <span class="text-muted">Analisando estrutura</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3" id="step3">
+                            <i class="bi bi-circle text-muted me-3"></i>
+                            <span class="text-muted">Gerando conteúdo com IA</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3" id="step4">
+                            <i class="bi bi-circle text-muted me-3"></i>
+                            <span class="text-muted">Criando slides</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3" id="step5">
+                            <i class="bi bi-circle text-muted me-3"></i>
+                            <span class="text-muted">Aplicando formatação</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-3" id="step6">
+                            <i class="bi bi-circle text-muted me-3"></i>
+                            <span class="text-muted">Finalizando apresentação</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estimated Time -->
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-clock me-2"></i>
+                    <strong>Tempo estimado:</strong> 2-5 minutos
+                    <small class="d-block mt-1">
+                        O tempo pode variar dependendo do tamanho do documento
+                    </small>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Voltar
+                    </button>
+                    <button class="btn btn-primary" onclick="window.location.reload()" id="refreshBtn">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Atualizar Status
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-lightbulb text-warning me-2"></i>
+                            Enquanto espera...
+                        </h6>
+                        <p class="card-text small mb-0">
+                            A IA está analisando seu documento e criando uma apresentação estruturada 
+                            com títulos, subtítulos e pontos principais organizados logicamente.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-gear text-primary me-2"></i>
+                            Processamento
+                        </h6>
+                        <p class="card-text small mb-0">
+                            Estamos usando inteligência artificial para extrair os conceitos principais 
+                            e criar slides visualmente atraentes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Iniciar a simulação visual
+    simulateProcessing();
+    
+    // Verificar o status imediatamente
+    checkProcessingStatus();
+    
+    // Verificar a cada 3 segundos para uma atualização mais ágil
+    setInterval(checkProcessingStatus, 3000);
+});
+
+function simulateProcessing() {
+    // Esta função agora apenas simula a animação visual dos passos
+    // O progresso real será atualizado pela API
+    const steps = [
+        { id: 'step1', text: 'Extraindo texto do documento', delay: 1000 },
+        { id: 'step2', text: 'Analisando estrutura', delay: 3000 },
+        { id: 'step3', text: 'Gerando conteúdo com IA', delay: 6000 },
+        { id: 'step4', text: 'Criando slides', delay: 9000 },
+        { id: 'step5', text: 'Aplicando formatação', delay: 12000 },
+        { id: 'step6', text: 'Finalizando apresentação', delay: 15000 }
+    ];
+    
+    let currentStep = 0;
+    
+    function updateStep() {
+        if (currentStep < steps.length) {
+            const step = steps[currentStep];
+            
+            // Update previous step to completed
+            if (currentStep > 0) {
+                const prevStep = document.getElementById(steps[currentStep - 1].id);
+                prevStep.innerHTML = `
+                    <i class="bi bi-check-circle text-success me-3"></i>
+                    <span>${steps[currentStep - 1].text}</span>
+                `;
+            }
+            
+            // Update current step to processing
+            const currentStepEl = document.getElementById(step.id);
+            currentStepEl.innerHTML = `
+                <div class="spinner-border spinner-border-sm text-primary me-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span>${step.text}</span>
+            `;
+            currentStepEl.querySelector('span:last-child').classList.remove('text-muted');
+            
+            // Atualizar a mensagem de status (mas não o progresso, que virá da API)
+            document.getElementById('statusText').textContent = step.text;
+            
+            currentStep++;
+            
+            // Continuar com a animação visual até o último passo
+            if (currentStep < steps.length) {
+                setTimeout(updateStep, 3000); // Intervalo um pouco maior para dar tempo à API
+            }
+        }
+    }
+    
+    // Iniciar a animação visual
+    updateStep();
+}
+
+function checkProcessingStatus() {
+    // Fazer uma chamada AJAX para verificar o status do processamento
+    const filename = '{{ filename or "document" }}';
+    
+    fetch(`/api/status/${filename}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na requisição');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Status API response:', data);
+            
+            // Atualizar progresso na interface
+            if (data.progress) {
+                document.getElementById('progressBar').style.width = data.progress + '%';
+                document.getElementById('progressPercent').textContent = data.progress + '%';
+            }
+            
+            // Atualizar mensagem
+            if (data.message) {
+                document.getElementById('statusText').textContent = data.message;
+            }
+            
+            // Verificar se o processamento foi concluído
+            if (data.status === 'completed') {
+                // Mostrar que todos os passos foram concluídos
+                document.querySelectorAll('[id^="step"]').forEach(step => {
+                    step.innerHTML = `
+                        <i class="bi bi-check-circle text-success me-3"></i>
+                        <span>${step.querySelector('span').textContent}</span>
+                    `;
+                });
+                
+                // Mostrar toast de conclusão
+                if (window.DocToPPT && DocToPPT.showToast) {
+                    DocToPPT.showToast('Processamento concluído! Redirecionando...', 'success');
+                }
+                
+                // Redirecionar para a página de resultado após um breve delay
+                setTimeout(() => {
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        window.location.href = `/result/${filename}`;
+                    }
+                }, 1500);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao verificar status:', error);
+        });
+}
+</script>
+{% endblock %}

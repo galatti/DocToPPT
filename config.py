@@ -11,8 +11,7 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     FLASK_ENV = os.getenv('FLASK_ENV', 'development')
     DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
-    
-    # Upload settings
+      # Upload settings
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16777216))  # 16MB
     UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'static/uploads')
     ALLOWED_EXTENSIONS = set(os.getenv('ALLOWED_EXTENSIONS', 'pdf,docx,txt,md,pptx').split(','))
